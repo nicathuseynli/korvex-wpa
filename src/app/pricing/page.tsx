@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { APP_STORE_URL, PLAY_STORE_URL, TG_BOT_URL } from "@/lib/constants";
@@ -46,6 +47,7 @@ export default function PricingPage() {
       trial: dict.pricing.plans.weekly.trial,
       features: [pf.allServers, pf.devices5, pf.wireguard, pf.support247],
       recommended: false,
+      buyPlanId: "month_1",
     },
     {
       name: dict.pricing.plans.monthly.name,
@@ -54,6 +56,7 @@ export default function PricingPage() {
       trial: dict.pricing.plans.monthly.trial,
       features: [pf.allServers, pf.devices5, pf.wireguard, pf.support247, pf.prioritySupport],
       recommended: true,
+      buyPlanId: "months_3",
     },
     {
       name: dict.pricing.plans.annual.name,
@@ -62,6 +65,7 @@ export default function PricingPage() {
       trial: dict.pricing.plans.annual.trial,
       features: [pf.allServers, pf.devices10, pf.wireguard, pf.support247, pf.prioritySupport, pf.savings65],
       recommended: false,
+      buyPlanId: "months_12",
     },
   ];
 
@@ -116,6 +120,16 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
+                <Link
+                  href={`/checkout?plan=${plan.buyPlanId}`}
+                  className={`block w-full rounded-xl px-4 py-3 text-center font-heading text-sm font-bold transition-all ${
+                    plan.recommended
+                      ? "bg-korvex-accent text-korvex-bg hover:bg-korvex-accent-secondary"
+                      : "border border-korvex-border bg-korvex-bg-secondary text-korvex-text hover:border-korvex-accent/40"
+                  }`}
+                >
+                  Get link via email
+                </Link>
               </div>
             ))}
           </div>

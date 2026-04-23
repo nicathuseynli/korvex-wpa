@@ -3,8 +3,9 @@ services:
     build: .
     container_name: korvex-web
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    # Reach host Postgres on 95.217.234.25 via the host network shortcut.
+    # If you prefer bridge networking, set WEB_DATABASE_URL to a real IP/DNS.
+    network_mode: host
     env_file:
       - .env.production
     healthcheck:

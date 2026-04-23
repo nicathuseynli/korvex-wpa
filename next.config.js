@@ -24,7 +24,7 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.korvex.app https://telegram.org wss:",
+      "connect-src 'self' https://api.korvex.app https://api.media-flow-api.com https://telegram.org wss:",
       "frame-src https://telegram.org",
       "frame-ancestors 'none'",
       "base-uri 'self'",
@@ -57,8 +57,10 @@ const nextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ['korvex.app'],
+      allowedOrigins: ['korvex.app', 'app.media-flow-api.com'],
     },
+    // pg is a Node-only package; mark external so Next doesn't try to bundle it.
+    serverComponentsExternalPackages: ['pg'],
   },
 };
 
