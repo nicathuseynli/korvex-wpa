@@ -1,5 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { GATE_COOKIE, isGateEnabled, isGateTokenValid } from "@/lib/gate-auth";
+
+// Paths that stay reachable without the gate cookie — otherwise the user
+// could never log in or fetch static assets for the gate page itself.
+const GATE_BYPASS = [
+  "/gate",
+  "/api/gate",
+  "/favicon.ico",
+  "/manifest.json",
+  "/sw.js",
+  "/icons",
+  "/_next",
+  "/offline",
+];
+
+function isGateBypassed(pathname: string): boolean {
+  return GATE_BYPASS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
 
 // --- Rate limiting ---
 
@@ -58,9 +76,39 @@ function isRateLimited(key: string, limit: number): boolean {
 
 // --- Middleware ---
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestId = crypto.randomUUID();
+
+  // Site-wide password gate. If enabled (both env vars set), every request
+  // must carry a valid site_access cookie — otherwise redirect to /gate.
+  if (isGateEnabled() && !isGateBypassed(pathname)) {
+    const cookie = request.cookies.get(GATE_COOKIE)?.value;
+    const ok = await isGateTokenValid(cookie);
+    if (!ok) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401, headers: { "x-request-id": requestId } }
+        );
+      }
+      // Build redirect URL from the forwarded host so proxies don't leak the
+      // internal bind address (localhost:3000) into the Location header.
+      const forwardedHost = request.headers.get("x-forwarded-host");
+      const forwardedProto = request.headers.get("x-forwarded-proto");
+      const hostHeader = request.headers.get("host");
+      const redirect = request.nextUrl.clone();
+      if (forwardedHost || hostHeader) {
+        const hp = (forwardedHost ?? hostHeader)!.split(":");
+        redirect.hostname = hp[0];
+        redirect.port = hp[1] ?? "";
+        redirect.protocol = (forwardedProto ?? "https") + ":";
+      }
+      redirect.pathname = "/gate";
+      redirect.searchParams.set("next", pathname + request.nextUrl.search);
+      return NextResponse.redirect(redirect);
+    }
+  }
 
   // Block malicious user-agents
   const userAgent = request.headers.get("user-agent") ?? "";

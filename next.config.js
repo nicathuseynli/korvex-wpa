@@ -57,7 +57,7 @@ const nextConfig = {
 
   experimental: {
     serverActions: {
-      allowedOrigins: ['korvex.app', 'app.media-flow-api.com'],
+      allowedOrigins: ['korvex.app', 'app.media-flow-api.com', 'nokorvex.com', 'www.nokorvex.com'],
     },
     // pg is a Node-only package; mark external so Next doesn't try to bundle it.
     serverComponentsExternalPackages: ['pg'],
